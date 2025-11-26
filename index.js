@@ -57,12 +57,10 @@ async function run() {
                 !fullDescription ||
                 price == null
             ) {
-                return res
-                    .status(400)
-                    .json({
-                        message:
-                            "title, shortDescription, fullDescription, price are required",
-                    });
+                return res.status(400).json({
+                    message:
+                        "title, shortDescription, fullDescription, price are required",
+                });
             }
 
             const newProduct = {
@@ -85,7 +83,15 @@ async function run() {
 
         app.put("/products/:id", async (req, res) => {
             const id = req.params.id;
-            const { title, shortDescription, fullDescription, price, date, priority, imageUrl } = req.body;
+            const {
+                title,
+                shortDescription,
+                fullDescription,
+                price,
+                date,
+                priority,
+                imageUrl,
+            } = req.body;
 
             const update = {
                 ...(title && { title }),
@@ -108,6 +114,13 @@ async function run() {
             // }
 
             // res.json(formatProduct(result.value));
+            res.send(result);
+        });
+
+        app.delete("/products/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await productsCollection.deleteOne(query);
             res.send(result);
         });
 
