@@ -41,29 +41,73 @@ async function run() {
         });
 
         app.post("/products", async (req, res) => {
-            const { title, shortDescription, fullDescription, price, date, priority, imageUrl } = req.body;
+            const {
+                title,
+                shortDescription,
+                fullDescription,
+                price,
+                date,
+                priority,
+                imageUrl,
+            } = req.body;
 
-            if (!title || !shortDescription || !fullDescription || price == null) {
+            if (
+                !title ||
+                !shortDescription ||
+                !fullDescription ||
+                price == null
+            ) {
                 return res
                     .status(400)
-                    .json({ message: "title, shortDescription, fullDescription, price are required" });
+                    .json({
+                        message:
+                            "title, shortDescription, fullDescription, price are required",
+                    });
             }
 
             const newProduct = {
-            title,
-            shortDescription,
-            fullDescription,
-            price: Number(price),
-            date: date || new Date().toISOString().slice(0, 10),
-            priority: priority || "Medium",
-            imageUrl:
-                imageUrl ||
-                "https://images.pexels.com/photos/196646/pexels-photo-196646.jpeg"
+                title,
+                shortDescription,
+                fullDescription,
+                price: Number(price),
+                date: date || new Date().toISOString().slice(0, 10),
+                priority: priority || "Medium",
+                imageUrl:
+                    imageUrl ||
+                    "https://images.pexels.com/photos/196646/pexels-photo-196646.jpeg",
             };
 
             const result = await productsCollection.insertOne(newProduct);
             // const inserted = await productsCollection.findOne({ _id: result.insertedId });
             // res.status(201).json(formatProduct(inserted));
+            res.send(result);
+        });
+
+        app.put("/products/:id", async (req, res) => {
+            const id = req.params.id;
+            const { title, shortDescription, fullDescription, price, date, priority, imageUrl } = req.body;
+
+            const update = {
+                ...(title && { title }),
+                ...(shortDescription && { shortDescription }),
+                ...(fullDescription && { fullDescription }),
+                ...(price != null && { price: Number(price) }),
+                ...(date && { date }),
+                ...(priority && { priority }),
+                ...(imageUrl && { imageUrl }),
+            };
+
+            const result = await productsCollection.findOneAndUpdate(
+                { _id: new ObjectId(id) },
+                { $set: update },
+                { returnDocument: "after" },
+            );
+
+            // if (!result.value) {
+            //     return res.status(404).json({ message: "Product not found" });
+            // }
+
+            // res.json(formatProduct(result.value));
             res.send(result);
         });
 
