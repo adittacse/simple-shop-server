@@ -41,79 +41,20 @@ async function run() {
         });
 
         app.post("/products", async (req, res) => {
-            const {
-                title,
-                shortDescription,
-                fullDescription,
-                price,
-                date,
-                priority,
-                imageUrl,
-            } = req.body;
-
-            if (
-                !title ||
-                !shortDescription ||
-                !fullDescription ||
-                price == null
-            ) {
-                return res.status(400).json({
-                    message:
-                        "title, shortDescription, fullDescription, price are required",
-                });
-            }
-
-            const newProduct = {
-                title,
-                shortDescription,
-                fullDescription,
-                price: Number(price),
-                date: date || new Date().toISOString().slice(0, 10),
-                priority: priority || "Medium",
-                imageUrl:
-                    imageUrl ||
-                    "https://images.pexels.com/photos/196646/pexels-photo-196646.jpeg",
-            };
-
+            const newProduct = req.body;
             const result = await productsCollection.insertOne(newProduct);
-            // const inserted = await productsCollection.findOne({ _id: result.insertedId });
-            // res.status(201).json(formatProduct(inserted));
             res.send(result);
         });
 
-        app.put("/products/:id", async (req, res) => {
+        app.patch("/products/:id", async (req, res) => {
             const id = req.params.id;
-            const {
-                title,
-                shortDescription,
-                fullDescription,
-                price,
-                date,
-                priority,
-                imageUrl,
-            } = req.body;
-
+            const updatedProduct = req.body;
+            const query = { _id: new ObjectId(id) };
             const update = {
-                ...(title && { title }),
-                ...(shortDescription && { shortDescription }),
-                ...(fullDescription && { fullDescription }),
-                ...(price != null && { price: Number(price) }),
-                ...(date && { date }),
-                ...(priority && { priority }),
-                ...(imageUrl && { imageUrl }),
+                $set: updatedProduct
             };
-
-            const result = await productsCollection.findOneAndUpdate(
-                { _id: new ObjectId(id) },
-                { $set: update },
-                { returnDocument: "after" },
-            );
-
-            // if (!result.value) {
-            //     return res.status(404).json({ message: "Product not found" });
-            // }
-
-            // res.json(formatProduct(result.value));
+            const options = {};
+            const result = await productsCollection.updateOne(query, update, options);
             res.send(result);
         });
 
@@ -126,9 +67,7 @@ async function run() {
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
-        console.log(
-            "Pinged your deployment. You successfully connected to MongoDB!",
-        );
+        console.log("Pinged your deployment. You successfully connected to MongoDB!",);
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
@@ -137,9 +76,9 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-    res.send("Hello World!");
+    res.send("Simple Shop Server is running");
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+    console.log(`Simple Shop Server listening on port ${port}`);
 });
